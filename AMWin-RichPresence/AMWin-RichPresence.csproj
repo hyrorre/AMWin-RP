@@ -24,6 +24,8 @@
     <PackageReference Include="HtmlAgilityPack" Version="1.11.46" />
     <PackageReference Include="Inflatable.Lastfm" Version="1.2.0" />
     <PackageReference Include="MetaBrainz.ListenBrainz" Version="4.0.0" />
+    <PackageReference Include="MetaBrainz.MusicBrainz" Version="6.1.0" />
+    <PackageReference Include="MetaBrainz.MusicBrainz.CoverArt" Version="6.0.0" />
     <PackageReference Include="SecureCredentialManagement" Version="1.0.2" />
   </ItemGroup>
 

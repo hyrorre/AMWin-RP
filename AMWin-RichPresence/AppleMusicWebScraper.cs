@@ -1,4 +1,4 @@
-﻿using HtmlAgilityPack;
+using HtmlAgilityPack;
 using System.Linq;
 using System.Net.Http;
 using System.Collections.Generic;
@@ -254,9 +254,13 @@ namespace AMWin_RichPresence {
 
         // Get album artwork image
         // -----------------------------------------------
-        // Supported APIs: Last.FM, Apple Music web search
+        // Supported APIs: Cover Art Archive, Last.FM, Apple Music web search
         public async Task<string?> GetAlbumArtUrl() {
             try {
+                var brainzImg = await GetAlbumArtUrlBrainz();
+                if (brainzImg != null) {
+                    return brainzImg;
+                }
                 var lastFmImg = (lastFmApiKey == null || lastFmApiKey == "") ? null : await GetAlbumArtUrlLastFm();
                 if (lastFmApiKey != null && lastFmImg == null) {
                     logger?.Log($"[GetAlbumArtUrl] LastFM lookup failed, falling back to Apple Music Web");
@@ -300,6 +304,31 @@ namespace AMWin_RichPresence {
                 return null;
             }
         }
+
+        private async Task<string?> GetAlbumArtUrlBrainz() {
+            try {
+                var musicBrainzQuery = new MetaBrainz.MusicBrainz.Query();
+                var releases = await musicBrainzQuery.FindReleasesAsync($"{songAlbum} {songArtist}", 1);
+
+                foreach (var release in releases.Results) {
+                    var coverArt = new MetaBrainz.MusicBrainz.CoverArt.CoverArt();
+                    var cover = await coverArt.FetchReleaseAsync(release.Item.Id);
+                    foreach (var image in cover.Images) {
+                        var url = image.Thumbnails.Size1200;
+                        if (url != null) {
+                            logger?.Log($"[GetAlbumArtUrlBrainz] Album artwork found. {url}");
+                            return url.ToString();
+                        }
+                    }
+                }
+                logger?.Log($"[GetAlbumArtUrlBrainz] No album artwork found.");
+                return null;
+            } catch (Exception ex) {
+                logger?.Log($"[GetAlbumArtUrlBrainz] An exception occurred: {ex}");
+                return null;
+            }
+        }
+
         private string GetLargestImageUrl(HtmlNode nodeWithSource) {
             var imgSources = nodeWithSource
                 .Descendants("source")
